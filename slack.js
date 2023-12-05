@@ -295,11 +295,11 @@ const postTqr = async (req, res) => {
             }
     });
     
+    console.log(data)
         const zendeskTicketId = data.ticket_url.split('/').pop();
         const zendeskData = {
             'ticket': {
                 'subject': 'tester',
-                'status':ticket_status,
                 'custom_fields': [
                     {
                         'id': 1500002745542,
@@ -330,12 +330,12 @@ const postTqr = async (req, res) => {
             console.log('Zendesk Ticket Updated:', updatedTicket);
 
             
-            const message = `Ticket URL: ${data.ticket_url}\nTQR Expertise: ${data.expertise}\n...`; 
+            const message = `Ticket URL: ${data.ticket_url}\nTQR Expertise: ${data.expertise}\nTQR Accuracy: ${data.overall_accuracy}\nTQR Feedback: ${data.agent_feedback}`; 
             
-          
+           console.log(message)
             await axios.post('https://slack.com/api/chat.postMessage', {
                 channel: userId[1], 
-                text: "hello"
+                text: message
             }, {
                 headers: {
                     'Content-type': 'application/json',

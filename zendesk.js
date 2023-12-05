@@ -30,7 +30,7 @@ const updateZendeskTicket = async (ticketId, data) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Basic ${Buffer.from(`${zendeskCredentials.username}:${zendeskCredentials.token}`).toString('base64')}`
+                'Authorization': `Basic ${Buffer.from(`${zendeskCredentials.username}/token:${zendeskCredentials.token}`).toString('base64')}`
             }
         });
         return response.data;
