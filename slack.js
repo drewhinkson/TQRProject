@@ -1,7 +1,7 @@
 const axios = require('axios');
 const zendeskAPI = require('./zendesk');
 
-const postTqr = (req, res) => {
+const postTqr = async (req, res) => {
     const payload = JSON.parse(req.body.payload)
     const { trigger_id } = payload
 
@@ -255,25 +255,30 @@ const postTqr = (req, res) => {
         }
     })
     .then((response) => {
-        console.log( response, 'Modal opened successfully');
+     
+     
         res.status(200).end();
     })
     .catch((err) => {
         console.error('Error opening modal:', err.message);
         res.status(500).send('Error opening modal');
     });
-};
 
-const postInteractive = async (req, res) => {
-    const payload = JSON.parse(req.body.payload);
+ 
 
-    console.log('Received interactive payload:', payload);
+
+
+
+
+   
+
+
 
     if (payload.type === 'view_submission') {
         const values = payload.view.state.values;
         let data = {};
-
-        
+        let userId=[]
+        // Extract data from values
         Object.keys(values).forEach(key => {
             let subObject = values[key];
             let subKey = Object.keys(subObject)[0];
@@ -285,34 +290,74 @@ const postInteractive = async (req, res) => {
             } else if (subObject[subKey].type === 'plain_text_input') {
                 data[key] = subObject[subKey].value;
             }
-        });
-
+            else if (subObject[subKey].type === 'users_select') {
+                userId.push(subObject[subKey].selected_user);
+            }
+    });
+    
         const zendeskTicketId = data.ticket_url.split('/').pop();
-
-      
         const zendeskData = {
             'ticket': {
                 'subject': 'tester',
+                'status':ticket_status,
                 'custom_fields': [
+                    {
+                        'id': 1500002745542,
+                        'value': data.agent_feedback
+                    },
+                    {
+                        'id': 1500002745522,
+                        'value': data.Agent_reviewed
+                    },
+                    {
+                        'id':1500002745522,
+                        'value':`tq_accurate_${data.overall_accuracy}`
+                    },
+                    {
+                        'id':1500002742741,
+                        'value': data.reveiw_date
+
+                    }
+
                 ]
             }
         };
 
+
+      
         try {
             const updatedTicket = await zendeskAPI.updateZendeskTicket(zendeskTicketId, zendeskData);
             console.log('Zendesk Ticket Updated:', updatedTicket);
-            res.status(200).send('Zendesk ticket updated successfully');
+
+            
+            const message = `Ticket URL: ${data.ticket_url}\nTQR Expertise: ${data.expertise}\n...`; 
+            
+          
+            await axios.post('https://slack.com/api/chat.postMessage', {
+                channel: userId[1], 
+                text: "hello"
+            }, {
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${process.env.SLACK_BOT_TOKEN}`,
+                }
+            });
+            
+         
+            res.status(200).send('Zendesk ticket updated and message sent successfully');
         } catch (error) {
-            console.error('Error updating Zendesk ticket:', error.message);
-            res.status(500).send('Error updating Zendesk ticket');
+            
+            res.status(500).send('Error processing request');
         }
     } else {
         res.status(400).send('Invalid payload type');
     }
 };
 
+
+
 module.exports = {
     postTqr,
-    postInteractive
+  
 };
 

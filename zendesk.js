@@ -14,7 +14,9 @@ const getZendeskTicket = async (ticketId) => {
                 'Authorization': `Basic ${Buffer.from(`${zendeskCredentials.username}:${zendeskCredentials.token}`).toString('base64')}`
             }
         });
+        console.log(response.data);
         return response.data.ticket;
+        
     } catch (error) {
         console.error('Error fetching Zendesk ticket:', error.message);
         throw error;
